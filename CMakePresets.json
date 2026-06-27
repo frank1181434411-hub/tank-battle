@@ -1,0 +1,57 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "ucrt64-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "D:/msys2/ucrt64/bin/gcc.exe",
+                "CMAKE_CXX_COMPILER": "D:/msys2/ucrt64/bin/g++.exe",
+                "CMAKE_MAKE_PROGRAM": "D:/msys2/ucrt64/bin/ninja.exe",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            },
+            "environment": {
+                "PATH": "D:/msys2/ucrt64/bin;D:/msys2/usr/bin;$penv{PATH}"
+            }
+        },
+        {
+            "name": "debug",
+            "inherits": "ucrt64-base",
+            "binaryDir": "${sourceDir}/build/debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "TANK_BATTLE_ENABLE_DEBUG_UI": "ON",
+                "TANK_BATTLE_ENABLE_RL": "OFF",
+                "TANK_BATTLE_BUILD_TESTS": "OFF"
+            }
+        },
+        {
+            "name": "release",
+            "inherits": "ucrt64-base",
+            "binaryDir": "${sourceDir}/build/release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "TANK_BATTLE_ENABLE_DEBUG_UI": "OFF",
+                "TANK_BATTLE_ENABLE_RL": "OFF",
+                "TANK_BATTLE_BUILD_TESTS": "OFF"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release"
+        }
+    ]
+}

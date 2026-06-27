@@ -1,0 +1,49 @@
+# Build
+build/
+out/
+cmake-build-*/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+build.ninja
+.ninja_deps
+.ninja_log
+
+# Compiled files
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.exe
+*.pdb
+
+# VS Code generated cache
+.vscode/ipch/
+.vscode/.browse.VC.db*
+.vscode/*.log
+
+# Python and RL
+rl/.venv/
+rl/__pycache__/
+*.pyc
+*.pyo
+
+# Runtime output
+logs/
+screenshots/
+crash_dumps/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary and backup files
+*.tmp
+*.bak
+*.swp
+*~

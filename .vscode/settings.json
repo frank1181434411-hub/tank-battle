@@ -1,0 +1,35 @@
+{
+    "cmake.useCMakePresets": "always",
+    "cmake.cmakePath": "D:/msys2/ucrt64/bin/cmake.exe",
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.configureOnOpen": false,
+    "cmake.buildBeforeRun": true,
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.intelliSenseEngine": "default",
+    "terminal.integrated.defaultProfile.windows": "MSYS2 UCRT64",
+    "terminal.integrated.profiles.windows": {
+        "MSYS2 UCRT64": {
+            "path": "D:\\msys2\\msys2_shell.cmd",
+            "args": [
+                "-defterm",
+                "-here",
+                "-no-start",
+                "-ucrt64"
+            ]
+        }
+    },
+    "files.encoding": "utf8",
+    "files.eol": "\n",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.formatOnSave": false,
+    "files.associations": {
+        "iosfwd": "cpp",
+        "iostream": "cpp",
+        "cstring": "cpp",
+        "ostream": "cpp",
+        "set": "cpp",
+        "type_traits": "cpp"
+    }
+}
