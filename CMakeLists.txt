@@ -27,7 +27,11 @@ add_executable(TankBattle
     src/main.cpp
     src/core/game.cpp
     src/core/resource_manager.cpp
+    src/entity/base.cpp
     src/entity/bullet.cpp
+    src/entity/enemy_tank.cpp
+    src/entity/item.cpp
+    src/entity/player_tank.cpp
     src/entity/tank.cpp
     src/world/map.cpp
     src/world/tile.cpp
