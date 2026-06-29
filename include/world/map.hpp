@@ -35,6 +35,7 @@ public:
     const std::string& lastError() const noexcept;
 
     void draw(sf::RenderWindow& window) const;
+    void drawLayer(sf::RenderWindow& window,int layer) const;
 
 private:
     int index(int x,int y) const noexcept;

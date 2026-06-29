@@ -33,6 +33,7 @@ add_executable(TankBattle
     src/entity/item.cpp
     src/entity/player_tank.cpp
     src/entity/tank.cpp
+    src/world/collision.cpp
     src/world/map.cpp
     src/world/tile.cpp
 )

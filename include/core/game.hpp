@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <optional>
 #include <vector>
 
 #include "entity/base.hpp"
@@ -9,6 +10,7 @@
 #include "entity/enemy_tank.hpp"
 #include "entity/item.hpp"
 #include "entity/player_tank.hpp"
+#include "world/map.hpp"
 
 enum class GameStatus {
     Running,
@@ -28,8 +30,9 @@ private:
     void updateStatus();
 
     sf::RenderWindow window_;
-    PlayerTank player_;
-    Base base_;
+    Map map_;
+    std::optional<PlayerTank> player_;
+    std::optional<Base> base_;
     std::vector<EnemyTank> enemies_;
     std::vector<Bullet> bullets_;
     std::vector<Item> items_;

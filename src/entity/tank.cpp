@@ -61,6 +61,24 @@ void Tank::draw(sf::RenderWindow& window) const {
     }
 }
 
+sf::Vector2f Tank::getPosition() const noexcept
+{
+    return position_;
+}
+
+void Tank::setPosition(sf::Vector2f position)
+{
+    position_=position;
+    updateShapePositions();
+}
+
+sf::FloatRect Tank::boundsAt(sf::Vector2f position) const
+{
+    sf::FloatRect bounds=getBounds();
+    bounds.position+=position-position_;
+    return bounds;
+}
+
 void Tank::clampToWindow() {
     if (position_.x < prototype::TankHalfSize) {
         position_.x = prototype::TankHalfSize;

@@ -22,7 +22,7 @@ bool Tile::isDestructible() const noexcept{return type_==TileType::Brick;}
 
 bool Tile::isDrawable() const noexcept{return type_!=TileType::Empty;}
 
-int Tile::drawLayer() const noexcept{return type_==TileType::Grass?2:1;}
+int Tile::drawLayer() const noexcept{return type_==TileType::Grass?1:0;}
 
 char Tile::toChar() const noexcept
 {

@@ -140,6 +140,12 @@ const std::string& Map::lastError() const noexcept{return lastError_;}
 
 void Map::draw(sf::RenderWindow& window) const
 {
+    drawLayer(window,0);
+    drawLayer(window,1);
+}
+
+void Map::drawLayer(sf::RenderWindow& window,int layer) const
+{
     sf::RectangleShape shape({Tile::DefaultSize,Tile::DefaultSize});
     for(int y=0;y<height_;++y)
     {
@@ -147,6 +153,7 @@ void Map::draw(sf::RenderWindow& window) const
         {
             const Tile* tile=tileAt(x,y);
             if(tile==nullptr || !tile->isDrawable()) continue;
+            if(tile->drawLayer()!=layer) continue;
 
             shape.setPosition(tilePosition(x,y));
             shape.setFillColor(tile->color());

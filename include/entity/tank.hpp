@@ -21,6 +21,9 @@ public:
     int getMaxHp() const { return maxHp_; }
     int getId() const { return id_; }
     sf::FloatRect getBounds() const { return bodyShape_.getGlobalBounds(); }
+    sf::Vector2f getPosition() const noexcept;
+    void setPosition(sf::Vector2f position);
+    sf::FloatRect boundsAt(sf::Vector2f position) const;
 
 protected:
     sf::Vector2f position_;

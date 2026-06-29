@@ -1,6 +1,18 @@
 #include "entity/enemy_tank.hpp"
+#include "world/collision.hpp"
 
 namespace {
+bool hitsTankBlock(const sf::FloatRect& bounds,const std::vector<sf::FloatRect>& tankBlocks) noexcept
+{
+    for(const auto& block:tankBlocks)
+    {
+        if(bounds.findIntersection(block).has_value())
+            return true;
+    }
+
+    return false;
+}
+
 float enemySpeed(EnemyType type) {
     return type == EnemyType::Light ? 120.f : 70.f;
 }
@@ -63,6 +75,25 @@ void EnemyTank::update(float deltaTime, std::vector<Bullet>& bullets) {
     updateTurretRotation();
 }
 
+void EnemyTank::update(float deltaTime,std::vector<Bullet>& bullets,const Map& map,const std::vector<sf::FloatRect>& tankBlocks)
+{
+    (void)bullets;
+    if(!isAlive()) return;
+
+    if(cooldownTimer_>0.f)
+        cooldownTimer_-=deltaTime;
+
+    if(isMoving_)
+    {
+        const sf::Vector2f nextPosition=position_+movementFor(deltaTime);
+        const sf::FloatRect nextBounds=boundsAt(nextPosition);
+        if(!Collision::hitsTankBlock(map,nextBounds) && !hitsTankBlock(nextBounds,tankBlocks))
+            setPosition(nextPosition);
+    }
+
+    updateTurretRotation();
+}
+
 void EnemyTank::setMoveDirection(Direction dir) {
     dir_ = dir;
     isMoving_ = true;
@@ -84,4 +115,19 @@ void EnemyTank::tryFire(std::vector<Bullet>& bullets) {
     if (activeOwnBullets < maxBullets) {
         fire(bullets);
     }
+}
+
+sf::Vector2f EnemyTank::movementFor(float deltaTime) const
+{
+    sf::Vector2f movement(0.f,0.f);
+    if(dir_==Direction::Up)
+        movement.y-=speed_*deltaTime;
+    else if(dir_==Direction::Down)
+        movement.y+=speed_*deltaTime;
+    else if(dir_==Direction::Left)
+        movement.x-=speed_*deltaTime;
+    else if(dir_==Direction::Right)
+        movement.x+=speed_*deltaTime;
+
+    return movement;
 }
