@@ -74,6 +74,8 @@ void Game::update(float deltaTime) {
     }
 
     std::vector<sf::FloatRect> playerTankBlocks;
+    if(base_->isAlive())
+        playerTankBlocks.push_back(base_->getBounds());
     for(const auto& enemy:enemies_)
     {
         if(enemy.isAlive())
@@ -85,6 +87,8 @@ void Game::update(float deltaTime) {
         std::vector<sf::FloatRect> enemyTankBlocks;
         if(player_->isAlive())
             enemyTankBlocks.push_back(player_->getBounds());
+        if(base_->isAlive())
+            enemyTankBlocks.push_back(base_->getBounds());
         for(const auto& other:enemies_)
         {
             if(other.getId()!=enemy.getId() && other.isAlive())
