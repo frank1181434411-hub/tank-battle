@@ -23,6 +23,9 @@ public:
     sf::FloatRect getBounds() const { return bodyShape_.getGlobalBounds(); }
     sf::Vector2f getPosition() const noexcept;
     void setPosition(sf::Vector2f position);
+    Direction getDirection() const noexcept;
+    void setDirection(Direction direction);
+    void setHp(int hp) noexcept;
     sf::FloatRect boundsAt(sf::Vector2f position) const;
 
 protected:

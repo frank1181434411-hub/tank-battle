@@ -86,6 +86,38 @@ void PlayerTank::update(float deltaTime,std::vector<Bullet>& bullets,const Map& 
     }
 }
 
+void PlayerTank::updateWithInput(float deltaTime,std::vector<Bullet>& bullets,const Map& map,const std::vector<sf::FloatRect>& tankBlocks,bool moveUp,bool moveDown,bool moveLeft,bool moveRight,bool firePressed)
+{
+    if(!isAlive()) return;
+
+    if(cooldownTimer_>0.f)
+        cooldownTimer_-=deltaTime;
+
+    if(damageBuffTimer_>0.f)
+    {
+        damageBuffTimer_-=deltaTime;
+        if(damageBuffTimer_<=0.f)
+        {
+            currentBulletDamage_=prototype::PlayerNormalDamage;
+            turretShape_.setFillColor(sf::Color::White);
+        }
+    }
+
+    handleMovementWithInput(deltaTime,map,tankBlocks,moveUp,moveDown,moveLeft,moveRight);
+
+    if(firePressed)
+    {
+        int activePlayerBullets=0;
+        for(const auto& bullet:bullets)
+        {
+            if(bullet.getFaction()==Faction::Player && bullet.getOwnerId()==getId())
+                ++activePlayerBullets;
+        }
+        if(activePlayerBullets<3)
+            fire(bullets);
+    }
+}
+
 void PlayerTank::handleMovement(float deltaTime) {
     sf::Vector2f movement(0.f, 0.f);
     bool moved = false;
@@ -156,6 +188,46 @@ void PlayerTank::handleMovement(float deltaTime,const Map& map,const std::vector
     updateTurretRotation();
 }
 
+void PlayerTank::handleMovementWithInput(float deltaTime,const Map& map,const std::vector<sf::FloatRect>& tankBlocks,bool moveUp,bool moveDown,bool moveLeft,bool moveRight)
+{
+    sf::Vector2f movement(0.f,0.f);
+    bool moved=false;
+
+    if(moveUp)
+    {
+        dir_=Direction::Up;
+        movement.y-=speed_*deltaTime;
+        moved=true;
+    }
+    else if(moveDown)
+    {
+        dir_=Direction::Down;
+        movement.y+=speed_*deltaTime;
+        moved=true;
+    }
+    else if(moveLeft)
+    {
+        dir_=Direction::Left;
+        movement.x-=speed_*deltaTime;
+        moved=true;
+    }
+    else if(moveRight)
+    {
+        dir_=Direction::Right;
+        movement.x+=speed_*deltaTime;
+        moved=true;
+    }
+
+    if(moved)
+    {
+        const sf::Vector2f nextPosition=position_+movement;
+        const sf::FloatRect nextBounds=boundsAt(nextPosition);
+        if(!Collision::hitsTankBlock(map,nextBounds) && !hitsTankBlock(nextBounds,tankBlocks))
+            setPosition(nextPosition);
+    }
+    updateTurretRotation();
+}
+
 void PlayerTank::collectItem(Item& item) {
     if (item.getType() == ItemType::HealthPack) {
         if (heal(40)) {
@@ -167,4 +239,9 @@ void PlayerTank::collectItem(Item& item) {
         turretShape_.setFillColor(sf::Color::Yellow);
         item.pickUp();
     }
+}
+
+void PlayerTank::setColor(sf::Color color)
+{
+    bodyShape_.setFillColor(color);
 }

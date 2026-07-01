@@ -17,6 +17,15 @@ void Base::takeDamage(int damage) {
     }
 }
 
+void Base::setHp(int hp) noexcept
+{
+    hp_=hp;
+    if(hp_<0)
+        hp_=0;
+    if(hp_>100)
+        hp_=100;
+}
+
 void Base::draw(sf::RenderWindow& window) const {
     if (isAlive()) {
         window.draw(shape_);

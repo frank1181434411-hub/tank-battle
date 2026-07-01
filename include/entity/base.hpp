@@ -8,6 +8,8 @@ public:
 
     void takeDamage(int damage);
     bool isAlive() const { return hp_ > 0; }
+    int getHp() const noexcept { return hp_; }
+    void setHp(int hp) noexcept;
     void draw(sf::RenderWindow& window) const;
     sf::FloatRect getBounds() const { return shape_.getGlobalBounds(); }
 

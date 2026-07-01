@@ -2,7 +2,8 @@
 #include <algorithm>
 #include <cmath>
 
-namespace {
+namespace 
+{
 bool overlapsBlockedTile(const Map& map,const sf::FloatRect& bounds,bool checkBulletBlock) noexcept
 {
     if(map.empty()) return false;

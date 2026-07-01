@@ -72,6 +72,26 @@ void Tank::setPosition(sf::Vector2f position)
     updateShapePositions();
 }
 
+Direction Tank::getDirection() const noexcept
+{
+    return dir_;
+}
+
+void Tank::setDirection(Direction direction)
+{
+    dir_=direction;
+    updateTurretRotation();
+}
+
+void Tank::setHp(int hp) noexcept
+{
+    hp_=hp;
+    if(hp_<0)
+        hp_=0;
+    if(hp_>maxHp_)
+        hp_=maxHp_;
+}
+
 sf::FloatRect Tank::boundsAt(sf::Vector2f position) const
 {
     sf::FloatRect bounds=getBounds();

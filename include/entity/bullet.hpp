@@ -16,6 +16,8 @@ public:
     int getOwnerId() const { return ownerId_; }
     Faction getFaction() const { return faction_; }
     sf::FloatRect getBounds() const { return shape_.getGlobalBounds(); }
+    sf::Vector2f getPosition() const noexcept { return position_; }
+    sf::Vector2f getVelocity() const noexcept { return velocity_; }
 
 private:
     sf::Vector2f position_;
