@@ -24,6 +24,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(SFML)
 
 add_executable(TankBattle
+    include/ai/ai_context.hpp
+    include/ai/ai_controller.hpp
+    include/ai/tank_command.hpp
     src/main.cpp
     src/core/game.cpp
     src/core/resource_manager.cpp
