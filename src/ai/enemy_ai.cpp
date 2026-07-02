@@ -106,8 +106,7 @@ std::vector<GridPoint> findPath(const EnemyTank& self,const Map& map,sf::Vector2
 {
     const GridPoint start=worldToGrid(self.getPosition());
     const GridPoint goal=worldToGrid(targetPosition);
-
-    if(!map.isInBounds(start.x,start.y) || !map.isInBounds(goal.x,goal.y))return {};
+    if(!map.isInBounds(start.x,start.y) || !map.isInBounds(goal.x,goal.y)) return {};
     constexpr std::array<GridPoint,4> offsets{GridPoint{0,-1},GridPoint{0,1},GridPoint{-1,0},GridPoint{1,0}};
     const int nodeCount=map.width()*map.height();
     if(nodeCount<=0) return {};
@@ -122,25 +121,20 @@ std::vector<GridPoint> findPath(const EnemyTank& self,const Map& map,sf::Vector2
         const GridPoint current=open.front();
         open.pop();
         if(current==goal) break;
-
         for(const GridPoint& offset:offsets)
         {
             const GridPoint next{current.x+offset.x,current.y+offset.y};
             if(!map.isInBounds(next.x,next.y)) continue;
-
             const int nextIndex=gridIndex(next,map.width());
             if(visited[static_cast<std::size_t>(nextIndex)]) continue;
             if(!isWalkable(self,map,next)) continue;
-
             visited[static_cast<std::size_t>(nextIndex)]=true;
             parent[static_cast<std::size_t>(nextIndex)]=gridIndex(current,map.width());
             open.push(next);
         }
     }
     const int goalIndex=gridIndex(goal,map.width());
-    if(!visited[static_cast<std::size_t>(goalIndex)])
-        return {};
-
+    if(!visited[static_cast<std::size_t>(goalIndex)]) return {};
     std::vector<GridPoint> path;
     int currentIndex=goalIndex;
     while(currentIndex!=-1)
@@ -150,7 +144,6 @@ std::vector<GridPoint> findPath(const EnemyTank& self,const Map& map,sf::Vector2
         if(currentIndex==startIndex) break;
         currentIndex=parent[static_cast<std::size_t>(currentIndex)];
     }
-
     std::reverse(path.begin(),path.end());
     return path;
 }
@@ -165,21 +158,12 @@ std::vector<GridPoint> findPathToBestShotCell(const EnemyTank& self,const Map& m
 
     for(const ShotCell& shotCell:shotCells)
     {
-        if(shotCell.weight<minimumWeight)
-            continue;
-
+        if(shotCell.weight<minimumWeight) continue;
         std::vector<GridPoint> path=findPath(self,map,map.tileCenter(shotCell.point.x,shotCell.point.y));
-        if(path.empty())
-            continue;
-
-        if(bestPath.empty() || path.size()<bestPath.size())
-            bestPath=path;
-
-        if(shotCell.weight==2 && (bestDirectPath.empty() || path.size()<bestDirectPath.size()))
-            bestDirectPath=path;
-
-        if(shotCell.weight==1 && (bestBrickPath.empty() || path.size()<bestBrickPath.size()))
-            bestBrickPath=path;
+        if(path.empty()) continue;
+        if(bestPath.empty() || path.size()<bestPath.size()) bestPath=path;
+        if(shotCell.weight==2 && (bestDirectPath.empty() || path.size()<bestDirectPath.size())) bestDirectPath=path;
+        if(shotCell.weight==1 && (bestBrickPath.empty() || path.size()<bestBrickPath.size())) bestBrickPath=path;
     }
 
     if(minimumWeight<=1 && !bestDirectPath.empty())
@@ -289,33 +273,26 @@ void EasyAI::reset()
 
 // normal ai
 
-NormalAI::NormalAI(std::uint32_t seed):random_(seed)
-{
-    currentCommand_.direction=randomDirection(random_);
-}
+NormalAI::NormalAI(std::uint32_t seed):random_(seed){currentCommand_.direction=randomDirection(random_);}
 
 TankCommand NormalAI::decide(const EnemyTank& self,const AIContext& context,float deltaTime)
 {
     if(!self.isAlive()) return {};
-
     const bool stuck=updateStuckState(self,deltaTime);
     decisionTimer_-=deltaTime;
     pathRefreshTimer_-=deltaTime;
-
     if(stuck)
     {
         clearPath();
         decisionTimer_=0.f;
         pathRefreshTimer_=0.f;
     }
-
     if(decisionTimer_>0.f)
     {
         TankCommand command=currentCommand_;
         command.fire=false;
         return command;
     }
-
     decisionTimer_=DecisionInterval;
     currentCommand_=makeDecision(self,context);
     return currentCommand_;
@@ -325,21 +302,16 @@ TankCommand NormalAI::makeDecision(const EnemyTank& self,const AIContext& contex
 {
     const sf::Vector2f target=selectTargetPosition(self,context);
     Direction attackDirection=self.getDirection();
-
     if(findClearShotDirection(self,target,context.map,attackDirection))
     {
         state_=State::Attack;
         return {attackDirection,false,true};
     }
-
     state_=State::Chase;
-
     if(pathRefreshTimer_<=0.f || path_.empty() || pathIndex_>=path_.size())
         rebuildPath(self,context,target);
 
-    if(!path_.empty() && pathIndex_<path_.size())
-        return {followPath(self,context),true,false};
-
+    if(!path_.empty() && pathIndex_<path_.size()) return {followPath(self,context),true,false};
     state_=State::Patrol;
     return {chooseFallbackDirection(self.getDirection()),true,false};
 }
@@ -348,23 +320,16 @@ sf::Vector2f NormalAI::selectTargetPosition(const EnemyTank& self,const AIContex
 {
     const PlayerTank* targetPlayer=nullptr;
     float minimumDistanceSquared=std::numeric_limits<float>::max();
-
     for(const PlayerTank& player:context.players)
     {
         if(!player.isAlive()) continue;
-
         const sf::Vector2f delta=player.getPosition()-self.getPosition();
         const float distanceSquared=delta.x*delta.x+delta.y*delta.y;
-
         if(distanceSquared>=minimumDistanceSquared) continue;
-
         minimumDistanceSquared=distanceSquared;
         targetPlayer=&player;
     }
-
-    if(targetPlayer!=nullptr)
-        return targetPlayer->getPosition();
-
+    if(targetPlayer!=nullptr) return targetPlayer->getPosition();
     const sf::FloatRect baseBounds=context.base.getBounds();
     return baseBounds.position+baseBounds.size*0.5f;
 }
@@ -373,39 +338,29 @@ void NormalAI::rebuildPath(const EnemyTank& self,const AIContext& context,sf::Ve
 {
     targetPosition_=targetPosition;
     path_=findPathToBestShotCell(self,context.map,targetPosition_,2);
-
-    if(path_.size()>1)
-        pathIndex_=1;
-    else
-        pathIndex_=path_.size();
-
+    if(path_.size()>1) pathIndex_=1;
+    else pathIndex_=path_.size();
     pathRefreshTimer_=PathRefreshInterval;
 }
 
 Direction NormalAI::followPath(const EnemyTank& self,const AIContext& context)
 {
     constexpr float ReachDistanceSquared=25.f;
-
     while(pathIndex_<path_.size())
     {
         const GridPoint& point=path_[pathIndex_];
         const sf::Vector2f nextPosition=context.map.tileCenter(point.x,point.y);
         const sf::Vector2f delta=nextPosition-self.getPosition();
         const float distanceSquared=delta.x*delta.x+delta.y*delta.y;
-
-        if(distanceSquared>ReachDistanceSquared)
-            return directionTo(self.getPosition(),nextPosition);
-
+        if(distanceSquared>ReachDistanceSquared) return directionTo(self.getPosition(),nextPosition);
         ++pathIndex_;
     }
-
     return self.getDirection();
 }
 
 bool NormalAI::updateStuckState(const EnemyTank& self,float deltaTime)
 {
     const sf::Vector2f currentPosition=self.getPosition();
-
     if(!positionInitialized_)
     {
         lastPosition_=currentPosition;
@@ -413,23 +368,17 @@ bool NormalAI::updateStuckState(const EnemyTank& self,float deltaTime)
         stuckTimer_=0.f;
         return 0;
     }
-
     const float deltaX=currentPosition.x-lastPosition_.x;
     const float deltaY=currentPosition.y-lastPosition_.y;
     const float distanceSquared=deltaX*deltaX+deltaY*deltaY;
     lastPosition_=currentPosition;
-
     if(!currentCommand_.move || distanceSquared>PositionEpsilonSquared)
     {
         stuckTimer_=0.f;
         return 0;
     }
-
     stuckTimer_+=deltaTime;
-
-    if(stuckTimer_<StuckTimeout)
-        return 0;
-
+    if(stuckTimer_<StuckTimeout) return 0;
     stuckTimer_=0.f;
     return 1;
 }
@@ -438,14 +387,12 @@ Direction NormalAI::chooseFallbackDirection(Direction currentDirection)
 {
     std::array<Direction,3> candidates{};
     std::size_t count=0;
-
     for(Direction direction:AllDirections)
     {
         if(direction==currentDirection) continue;
         candidates[count]=direction;
         ++count;
     }
-
     std::uniform_int_distribution<std::size_t> distribution(0,count-1);
     return candidates[distribution(random_)];
 }
@@ -522,10 +469,7 @@ TankCommand HardAI::makeDecision(const EnemyTank& self,const AIContext& context)
     const float targetChangeSquared=targetDifference.x*targetDifference.x+targetDifference.y*targetDifference.y;
     const bool targetChanged=selectedTarget.type!=currentTarget_.type || targetChangeSquared>=Tile::DefaultSize*Tile::DefaultSize;
     currentTarget_=selectedTarget;
-
-    if(targetChanged)
-        clearPath();
-
+    if(targetChanged) clearPath();
     Direction attackDirection=self.getDirection();
     if(findClearShotDirection(self,currentTarget_.position,context.map,attackDirection))
     {
