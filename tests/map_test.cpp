@@ -26,7 +26,7 @@ int main()
     Map map;
     bool ok=true;
 
-    if(!map.loadFromFile("assets/maps/map_test.txt"))
+    if(!map.loadFromFile("assets/maps/single/map_test.txt"))
     {
         std::cerr << "FAILED: load map_test.txt: " << map.lastError() << '\n';
         return 1;

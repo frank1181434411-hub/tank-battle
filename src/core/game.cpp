@@ -77,7 +77,7 @@ Game::Game()
 {
     window_.setFramerateLimit(60);
 
-    const bool mapLoaded=map_.loadFromFile("assets/maps/normal_ai_test.txt");
+    const bool mapLoaded=map_.loadFromFile("assets/maps/single/hard_ai_test.txt");
 
     sf::Vector2f playerPosition(400.f,500.f);
     if(mapLoaded && map_.hasPlayerSpawn()) playerPosition=map_.playerSpawn();
@@ -551,7 +551,7 @@ void Game::addEnemy(float x,float y,EnemyType type)
 {
     enemies_.emplace_back(x,y,type);
     const std::uint32_t seed=static_cast<std::uint32_t>(enemies_.back().getId()*9973+enemyAis_.size()+1);
-    enemyAis_.push_back(std::make_unique<NormalAI>(seed));
+    enemyAis_.push_back(std::make_unique<HardAI>(seed));
 }
 
 void Game::removeDeadEnemies()

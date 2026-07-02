@@ -201,6 +201,105 @@ void testIndependentAiInstances(TestResult& result)
     expect(leftCommand.direction==Direction::Right,"left enemy ai makes its own target decision",result);
     expect(rightCommand.direction==Direction::Left,"right enemy ai makes its own target decision",result);
 }
+
+void testHardAiDirectPlayerShot(TestResult& result)
+{
+    Map map=makeMap({
+        ".......",
+        ".......",
+        "......."
+    });
+
+    EnemyTank enemy(cell(1,1).x,cell(1,1).y,EnemyType::Heavy);
+    PlayerTank player(cell(5,1).x,cell(5,1).y);
+    Base base(cell(6,2).x,cell(6,2).y);
+    base.setHp(0);
+    std::vector<PlayerTank> players{player};
+    std::vector<EnemyTank> enemies{enemy};
+    std::vector<Bullet> bullets;
+    AIContext context=makeContext(map,players,base,enemies,bullets);
+
+    HardAI ai(8);
+    TankCommand command=ai.decide(enemy,context,0.2f);
+
+    expect(command.fire,"hard ai fires at an unobstructed player",result);
+    expect(!command.move,"hard ai stops before direct player fire",result);
+    expect(command.direction==Direction::Right,"hard ai faces player before direct fire",result);
+}
+
+void testHardAiAttacksBrickOnLine(TestResult& result)
+{
+    Map map=makeMap({
+        ".......",
+        "...#...",
+        "......."
+    });
+
+    EnemyTank enemy(cell(1,1).x,cell(1,1).y,EnemyType::Heavy);
+    PlayerTank player(cell(5,1).x,cell(5,1).y);
+    Base base(cell(6,2).x,cell(6,2).y);
+    base.setHp(0);
+    std::vector<PlayerTank> players{player};
+    std::vector<EnemyTank> enemies{enemy};
+    std::vector<Bullet> bullets;
+    AIContext context=makeContext(map,players,base,enemies,bullets);
+
+    HardAI ai(9);
+    TankCommand command=ai.decide(enemy,context,0.2f);
+
+    expect(command.fire,"hard ai fires to break a brick on target line",result);
+    expect(!command.move,"hard ai stops before firing at brick",result);
+    expect(command.direction==Direction::Right,"hard ai faces brick blocking target line",result);
+}
+
+void testHardAiDirectBaseShot(TestResult& result)
+{
+    Map map=makeMap({
+        ".......",
+        ".......",
+        "......."
+    });
+
+    EnemyTank enemy(cell(1,1).x,cell(1,1).y,EnemyType::Heavy);
+    PlayerTank player(cell(5,2).x,cell(5,2).y);
+    player.setHp(0);
+    Base base(cell(5,1).x,cell(5,1).y);
+    std::vector<PlayerTank> players{player};
+    std::vector<EnemyTank> enemies{enemy};
+    std::vector<Bullet> bullets;
+    AIContext context=makeContext(map,players,base,enemies,bullets);
+
+    HardAI ai(10);
+    TankCommand command=ai.decide(enemy,context,0.2f);
+
+    expect(command.fire,"hard ai fires at base when no player is alive",result);
+    expect(command.direction==Direction::Right,"hard ai faces base before direct fire",result);
+}
+
+void testHardAiMovesToShotCell(TestResult& result)
+{
+    Map map=makeMap({
+        ".......",
+        ".......",
+        ".......",
+        ".......",
+        "......."
+    });
+
+    EnemyTank enemy(cell(1,1).x,cell(1,1).y,EnemyType::Heavy);
+    PlayerTank player(cell(5,3).x,cell(5,3).y);
+    Base base(cell(0,4).x,cell(0,4).y);
+    base.setHp(0);
+    std::vector<PlayerTank> players{player};
+    std::vector<EnemyTank> enemies{enemy};
+    std::vector<Bullet> bullets;
+    AIContext context=makeContext(map,players,base,enemies,bullets);
+
+    HardAI ai(11);
+    TankCommand command=ai.decide(enemy,context,0.2f);
+
+    expect(command.move,"hard ai moves toward a valid shot cell when not aligned",result);
+}
 }
 
 int main()
@@ -213,6 +312,10 @@ int main()
     testSealedTarget(result);
     testNearestLivingPlayer(result);
     testIndependentAiInstances(result);
+    testHardAiDirectPlayerShot(result);
+    testHardAiAttacksBrickOnLine(result);
+    testHardAiDirectBaseShot(result);
+    testHardAiMovesToShotCell(result);
 
     std::cout<<"AI tests passed: "<<result.passed<<"\n";
     std::cout<<"AI tests failed: "<<result.failed<<"\n";

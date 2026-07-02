@@ -3,7 +3,7 @@
 namespace prototype {
 constexpr float WindowWidth = 800.f;
 constexpr float WindowHeight = 600.f;
-constexpr float TankHalfSize = 18.f;
+constexpr float TankHalfSize = 16.f;
 constexpr float PlayerBulletSpeed = 320.f;
 constexpr float LightEnemyBulletSpeed = 290.f;
 constexpr float HeavyEnemyBulletSpeed = 270.f;
