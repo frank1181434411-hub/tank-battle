@@ -13,6 +13,7 @@
 struct GridPoint
 {
     int x=0,y=0;
+    bool operator==(const GridPoint& other) const noexcept{return x==other.x && y==other.y;}
 };
 
 class EasyAI final:public AIController
@@ -49,8 +50,8 @@ public:
 private:
     enum class State{Patrol,Chase,Attack};
     TankCommand makeDecision(const EnemyTank& self,const AIContext& context);
-    sf::Vector2f selectTargetPosition(const EnemyTank& self,const AIContext& context);
-    void rebuildPath(const EnemyTank& self,const AIContext& context);
+    sf::Vector2f selectTargetPosition(const EnemyTank& self,const AIContext& context) const;
+    void rebuildPath(const EnemyTank& self,const AIContext& context,sf::Vector2f targetPosition);
     Direction followPath(const EnemyTank& self,const AIContext& context);
     bool updateStuckState(const EnemyTank& self,float deltaTime);
     Direction chooseFallbackDirection(Direction currentDirection);
@@ -68,6 +69,7 @@ private:
     sf::Vector2f lastPosition_{0.f,0.f};
     sf::Vector2f targetPosition_{0.f,0.f};
     std::vector<GridPoint> path_;
+    std::size_t pathIndex_=0;
     std::mt19937 random_;
     bool positionInitialized_=false;
 };

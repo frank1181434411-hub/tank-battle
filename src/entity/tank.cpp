@@ -19,10 +19,10 @@ Tank::Tank(float x, float y, float speed, int maxHp, Faction faction, float fire
       bodyShape_(),
       turretShape_()
 {
-    bodyShape_.setSize({40.f, 40.f});
-    bodyShape_.setOrigin({20.f, 20.f});
-    turretShape_.setSize({8.f, 20.f});
-    turretShape_.setOrigin({4.f, 20.f});
+    bodyShape_.setSize({36.f, 36.f});
+    bodyShape_.setOrigin({18.f, 18.f});
+    turretShape_.setSize({8.f, 18.f});
+    turretShape_.setOrigin({4.f, 18.f});
     updateShapePositions();
 }
 

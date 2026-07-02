@@ -2,10 +2,12 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "ai/ai_controller.hpp"
 #include "entity/base.hpp"
 #include "entity/bullet.hpp"
 #include "entity/enemy_tank.hpp"
@@ -39,6 +41,8 @@ private:
     void collectLocalInput(PlayerInputState& input);
     void applySnapshot(const GameSnapshot& snapshot);
     GameSnapshot createSnapshot() const;
+    void addEnemy(float x,float y,EnemyType type);
+    void removeDeadEnemies();
 
     sf::RenderWindow window_;
     Map map_;
@@ -47,6 +51,7 @@ private:
     std::optional<PlayerTank> playerTwo_;
     std::optional<Base> base_;
     std::vector<EnemyTank> enemies_;
+    std::vector<std::unique_ptr<AIController>> enemyAis_;
     std::vector<Bullet> bullets_;
     std::vector<Item> items_;
     PlayerInputState localInput_;

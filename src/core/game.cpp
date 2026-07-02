@@ -1,8 +1,10 @@
 #include "core/game.hpp"
+#include "ai/enemy_ai.hpp"
 #include "world/collision.hpp"
 
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace {
@@ -40,6 +42,20 @@ void updatePlayerByInput(PlayerTank& player,float deltaTime,std::vector<Bullet>&
 {
     player.updateWithInput(deltaTime,bullets,map,blocks,input.moveUp,input.moveDown,input.moveLeft,input.moveRight,input.fire);
 }
+
+void applyTankCommand(EnemyTank& enemy,const TankCommand& command,std::vector<Bullet>& bullets)
+{
+    if(command.move)
+        enemy.setMoveDirection(command.direction);
+    else
+    {
+        enemy.setDirection(command.direction);
+        enemy.stopMoving();
+    }
+
+    if(command.fire)
+        enemy.tryFire(bullets);
+}
 }
 
 Game::Game()
@@ -52,6 +68,7 @@ Game::Game()
       playerTwo_(),
       base_(),
       enemies_(),
+      enemyAis_(),
       bullets_(),
       items_(),
       localInput_(),
@@ -60,7 +77,7 @@ Game::Game()
 {
     window_.setFramerateLimit(60);
 
-    const bool mapLoaded=map_.loadFromFile("assets/maps/map_test.txt");
+    const bool mapLoaded=map_.loadFromFile("assets/maps/normal_ai_test.txt");
 
     sf::Vector2f playerPosition(400.f,500.f);
     if(mapLoaded && map_.hasPlayerSpawn()) playerPosition=map_.playerSpawn();
@@ -79,17 +96,14 @@ Game::Game()
         for(std::size_t i=0;i<enemySpawns.size();++i)
         {
             const EnemyType type=i%2==0?EnemyType::Light:EnemyType::Heavy;
-            enemies_.emplace_back(enemySpawns[i].x,enemySpawns[i].y,type);
+            addEnemy(enemySpawns[i].x,enemySpawns[i].y,type);
         }
     }
     else
     {
-        enemies_.emplace_back(100.f,100.f,EnemyType::Light);
-        enemies_.emplace_back(700.f,100.f,EnemyType::Heavy);
+        addEnemy(100.f,100.f,EnemyType::Light);
+        addEnemy(700.f,100.f,EnemyType::Heavy);
     }
-
-    if(!enemies_.empty()) enemies_[0].setMoveDirection(Direction::Down);
-    if(enemies_.size()>1) enemies_[1].setMoveDirection(Direction::Left);
 }
 
 void Game::startHost(unsigned short port)
@@ -150,7 +164,13 @@ void Game::updateOffline(float deltaTime)
     addAliveEnemyBlocks(playerTankBlocks,enemies_);
     playerOne_->update(deltaTime,bullets_,map_,playerTankBlocks);
 
-    for (auto& enemy : enemies_) {
+    std::vector<PlayerTank> aiPlayers;
+    if(playerOne_)
+        aiPlayers.push_back(*playerOne_);
+    AIContext aiContext{map_,aiPlayers,*base_,enemies_,bullets_};
+
+    for (std::size_t i=0;i<enemies_.size();++i) {
+        auto& enemy=enemies_[i];
         std::vector<sf::FloatRect> enemyTankBlocks;
         if(playerOne_->isAlive())
             enemyTankBlocks.push_back(playerOne_->getBounds());
@@ -161,8 +181,9 @@ void Game::updateOffline(float deltaTime)
             if(other.getId()!=enemy.getId() && other.isAlive())
                 enemyTankBlocks.push_back(other.getBounds());
         }
+        const TankCommand command=enemyAis_[i]->decide(enemy,aiContext,deltaTime);
+        applyTankCommand(enemy,command,bullets_);
         enemy.update(deltaTime,bullets_,map_,enemyTankBlocks);
-        enemy.tryFire(bullets_);
     }
 
     for (auto& item : items_) {
@@ -212,13 +233,7 @@ void Game::updateOffline(float deltaTime)
         }
     }
 
-    for (auto enemy = enemies_.begin(); enemy != enemies_.end();) {
-        if (!enemy->isAlive()) {
-            enemy = enemies_.erase(enemy);
-        } else {
-            ++enemy;
-        }
-    }
+    removeDeadEnemies();
 
     for (auto item = items_.begin(); item != items_.end();) {
         if (!item->isAlive()) {
@@ -268,8 +283,16 @@ void Game::updateHost(float deltaTime)
         updatePlayerByInput(*playerTwo_,deltaTime,bullets_,map_,playerTwoBlocks,remoteInput_);
     }
 
-    for(auto& enemy:enemies_)
+    std::vector<PlayerTank> aiPlayers;
+    if(playerOne_)
+        aiPlayers.push_back(*playerOne_);
+    if(playerTwo_)
+        aiPlayers.push_back(*playerTwo_);
+    AIContext aiContext{map_,aiPlayers,*base_,enemies_,bullets_};
+
+    for(std::size_t i=0;i<enemies_.size();++i)
     {
+        auto& enemy=enemies_[i];
         std::vector<sf::FloatRect> enemyTankBlocks;
         if(playerOne_->isAlive())
             enemyTankBlocks.push_back(playerOne_->getBounds());
@@ -282,8 +305,9 @@ void Game::updateHost(float deltaTime)
             if(other.getId()!=enemy.getId() && other.isAlive())
                 enemyTankBlocks.push_back(other.getBounds());
         }
+        const TankCommand command=enemyAis_[i]->decide(enemy,aiContext,deltaTime);
+        applyTankCommand(enemy,command,bullets_);
         enemy.update(deltaTime,bullets_,map_,enemyTankBlocks);
-        enemy.tryFire(bullets_);
     }
 
     for(auto& item:items_)
@@ -357,13 +381,7 @@ void Game::updateHost(float deltaTime)
             ++bullet;
     }
 
-    for(auto enemy=enemies_.begin();enemy!=enemies_.end();)
-    {
-        if(!enemy->isAlive())
-            enemy=enemies_.erase(enemy);
-        else
-            ++enemy;
-    }
+    removeDeadEnemies();
 
     for(auto item=items_.begin();item!=items_.end();)
     {
@@ -425,12 +443,12 @@ void Game::applySnapshot(const GameSnapshot& snapshot)
     }
 
     enemies_.clear();
+    enemyAis_.clear();
     for(const auto& enemySnapshot:snapshot.enemies)
     {
-        EnemyTank enemy(enemySnapshot.x,enemySnapshot.y,EnemyType::Light);
-        enemy.setDirection(static_cast<Direction>(enemySnapshot.direction));
-        enemy.setHp(enemySnapshot.hp);
-        enemies_.push_back(enemy);
+        addEnemy(enemySnapshot.x,enemySnapshot.y,EnemyType::Light);
+        enemies_.back().setDirection(static_cast<Direction>(enemySnapshot.direction));
+        enemies_.back().setHp(enemySnapshot.hp);
     }
 
     bullets_.clear();
@@ -527,6 +545,31 @@ GameSnapshot Game::createSnapshot() const
     }
 
     return snapshot;
+}
+
+void Game::addEnemy(float x,float y,EnemyType type)
+{
+    enemies_.emplace_back(x,y,type);
+    const std::uint32_t seed=static_cast<std::uint32_t>(enemies_.back().getId()*9973+enemyAis_.size()+1);
+    enemyAis_.push_back(std::make_unique<NormalAI>(seed));
+}
+
+void Game::removeDeadEnemies()
+{
+    for(std::size_t i=0;i<enemies_.size();)
+    {
+        if(!enemies_[i].isAlive())
+        {
+            enemies_.erase(enemies_.begin()+static_cast<std::ptrdiff_t>(i));
+            if(i<enemyAis_.size())
+                enemyAis_.erase(enemyAis_.begin()+static_cast<std::ptrdiff_t>(i));
+        }
+        else
+            ++i;
+    }
+
+    while(enemyAis_.size()>enemies_.size())
+        enemyAis_.pop_back();
 }
 
 void Game::render() {

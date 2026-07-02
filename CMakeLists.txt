@@ -84,3 +84,39 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/config")
                 "$<TARGET_FILE_DIR:TankBattle>/config"
     )
 endif()
+
+if(TANK_BATTLE_BUILD_TESTS)
+    add_executable(TankBattleAITest
+        include/ai/ai_context.hpp
+        include/ai/ai_controller.hpp
+        include/ai/enemy_ai.hpp
+        include/ai/tank_command.hpp
+        tests/ai_test.cpp
+        src/ai/enemy_ai.cpp
+        src/entity/base.cpp
+        src/entity/bullet.cpp
+        src/entity/enemy_tank.cpp
+        src/entity/item.cpp
+        src/entity/player_tank.cpp
+        src/entity/tank.cpp
+        src/world/collision.cpp
+        src/world/map.cpp
+        src/world/tile.cpp
+    )
+
+    target_include_directories(TankBattleAITest PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    )
+
+    target_compile_options(TankBattleAITest PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+
+    target_link_libraries(TankBattleAITest PRIVATE
+        SFML::Graphics
+        SFML::Audio
+        SFML::Network
+    )
+endif()
