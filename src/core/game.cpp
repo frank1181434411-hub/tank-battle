@@ -90,19 +90,12 @@ Game::Game()
     items_.emplace_back(sf::Vector2f{300.f, 300.f}, ItemType::HealthPack);
     items_.emplace_back(sf::Vector2f{400.f, 300.f}, ItemType::DamagePack);
 
-    if(mapLoaded && !map_.enemySpawns().empty())
+    if(mapLoaded)
     {
-        const auto& enemySpawns=map_.enemySpawns();
-        for(std::size_t i=0;i<enemySpawns.size();++i)
+        for(const EnemySpawn& spawn:map_.enemySpawns())
         {
-            const EnemyType type=i%2==0?EnemyType::Light:EnemyType::Heavy;
-            addEnemy(enemySpawns[i].x,enemySpawns[i].y,type);
+            addEnemy(spawn.position.x,spawn.position.y,spawn.type);
         }
-    }
-    else
-    {
-        addEnemy(100.f,100.f,EnemyType::Light);
-        addEnemy(700.f,100.f,EnemyType::Heavy);
     }
 }
 

@@ -36,12 +36,23 @@ char Tile::toChar() const noexcept
 
 TileType Tile::fromChar(char value) noexcept
 {
-    if(value=='.' || value==' ' || value=='P' || value=='E' || value=='B') return TileType::Empty;
-    else if(value=='#') return TileType::Brick;
-    else if(value=='S') return TileType::Steel;
-    else if(value=='W') return TileType::Water;
-    else if(value=='G') return TileType::Grass;
-    else return TileType::Empty;
+    if(value=='.'||value==' '||value=='P'||value=='B'||value=='L'||value=='H')
+        return TileType::Empty;
+    
+
+    if(value=='#')
+        return TileType::Brick;
+
+    if(value=='S')
+        return TileType::Steel;
+
+    if(value=='W')
+        return TileType::Water;
+
+    if(value=='G')
+        return TileType::Grass;
+
+    return TileType::Empty;
 }
 
 sf::Color Tile::color() const

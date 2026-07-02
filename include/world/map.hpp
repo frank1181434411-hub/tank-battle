@@ -1,8 +1,18 @@
 #pragma once
+
 #include <SFML/Graphics.hpp>
+
 #include <string>
 #include <vector>
+
 #include "world/tile.hpp"
+#include "entity/enemy_type.hpp"
+
+struct EnemySpawn
+{
+    sf::Vector2f position{0.f,0.f};
+    EnemyType type=EnemyType::Light;
+};
 
 class Map {
 public:
@@ -31,7 +41,7 @@ public:
     bool hasBasePosition() const noexcept;
     sf::Vector2f basePosition() const noexcept;
 
-    const std::vector<sf::Vector2f>& enemySpawns() const noexcept;
+    const std::vector<EnemySpawn>& enemySpawns() const noexcept;
     const std::string& lastError() const noexcept;
 
     void draw(sf::RenderWindow& window) const;
@@ -48,6 +58,6 @@ private:
     bool hasBasePosition_=false;
     sf::Vector2f playerSpawn_{0.f,0.f};
     sf::Vector2f basePosition_{0.f,0.f};
-    std::vector<sf::Vector2f> enemySpawns_;
+    std::vector<EnemySpawn> enemySpawns_;
     std::string lastError_;
 };

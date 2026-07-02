@@ -1,6 +1,18 @@
 #include "world/map.hpp"
 #include <fstream>
 
+namespace
+{
+bool isValidMapCharacter(char value) noexcept
+{
+    return value=='.'||value==' '||
+        value=='#'||value=='S'||
+        value=='W'||value=='G'||
+        value=='P'||value=='B'||
+        value=='L'||value=='H';
+}
+}
+
 bool Map::loadFromFile(const std::string& filePath)
 {
     std::ifstream input(filePath);
@@ -51,8 +63,22 @@ bool Map::loadFromLines(const std::vector<std::string>& lines)
             if(x<static_cast<int>(line.size()))
                 value=line[static_cast<std::size_t>(x)];
 
-            setTile(x,y,Tile::fromChar(value));
-            readSpecialPoint(value,x,y);
+            if(!isValidMapCharacter(value))
+            {
+            const std::string error=
+                "invalid map character '"+
+                std::string(1,value)+
+                "' at ("+
+                std::to_string(x)+
+                ","+
+                std::to_string(y)+
+                ")";
+            clear();
+            lastError_=error;
+            return false;
+            }
+        setTile(x,y,Tile::fromChar(value));
+        readSpecialPoint(value,x,y);
         }
     }
 
@@ -134,7 +160,7 @@ bool Map::hasBasePosition() const noexcept{return hasBasePosition_;}
 
 sf::Vector2f Map::basePosition() const noexcept{return basePosition_;}
 
-const std::vector<sf::Vector2f>& Map::enemySpawns() const noexcept{return enemySpawns_;}
+const std::vector<EnemySpawn>& Map::enemySpawns() const noexcept{return enemySpawns_;}
 
 const std::string& Map::lastError() const noexcept{return lastError_;}
 
@@ -171,11 +197,27 @@ void Map::readSpecialPoint(char value,int x,int y)
         hasPlayerSpawn_=true;
         playerSpawn_=tileCenter(x,y);
     }
-    else if(value=='E')
-        enemySpawns_.push_back(tileCenter(x,y));
     else if(value=='B')
     {
         hasBasePosition_=true;
         basePosition_=tileCenter(x,y);
+    }
+    else if(value=='L')
+    {
+        enemySpawns_.push_back(
+            {
+                tileCenter(x,y),
+                EnemyType::Light
+            }
+        );
+    }
+    else if(value=='H')
+    {
+        enemySpawns_.push_back(
+            {
+                tileCenter(x,y),
+                EnemyType::Heavy
+            }
+        );
     }
 }

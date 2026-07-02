@@ -1,13 +1,9 @@
 #pragma once
 
 #include "entity/tank.hpp"
+#include "entity/enemy_type.hpp"
 
 class Map;
-
-enum class EnemyType {
-    Light,
-    Heavy
-};
 
 class EnemyTank : public Tank {
 public:
